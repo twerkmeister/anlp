@@ -7,5 +7,9 @@ tokens = nltk.word_tokenize(text)
 
 bigrams = NgramModel(2, tokens)
 
+print("Seen words after \"test.\":")
+bigrams[["test."]].freqdist().tabulate()
 
+print("probablility to see \"Feel\" after \"test.\":")
+print(bigrams[["test."]].prob("Feel"))
 
