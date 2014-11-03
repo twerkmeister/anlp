@@ -3,6 +3,7 @@ import os
 import sys
 from collections import Counter
 from nltk.model.ngram import NgramModel
+from nltk.probability import MLEProbDist
 
 def read_and_tokenize(filename):
   f = file(filename, "r")
@@ -20,6 +21,7 @@ def printPMI(pmi_list):
     print("%s %s -> %f" % (bigram[0], bigram[1], pmi))
 
 if __name__ == "__main__":
+  est = lambda fdist, bins: MLEProbDist(fdist)
   script_dir = "." if os.path.dirname(sys.argv[0]) == "" else os.path.dirname(sys.argv[0])
   os.chdir(script_dir + "/../assets")
   filename = "AV1611Bible.txt"
@@ -27,7 +29,7 @@ if __name__ == "__main__":
   counts = Counter(tokens)
   common_words = [k for (k,v) in counts.items() if v >= 10]
   # filtered_tokens = filter(lambda token: token in frequent_words, tokens)
-  bigrams = NgramModel(2, tokens)
+  bigrams = NgramModel(2, tokens, estimator=est)
   unigrams = bigrams._backoff
   pmi_results = {}
 
