@@ -5,6 +5,9 @@ from collections import Counter
 from nltk.model.ngram import NgramModel
 from nltk.probability import MLEProbDist
 
+import matplotlib.pyplot as plt
+from math import log
+
 def read_and_tokenize(filename):
   f = file(filename, "r")
   text = f.read()
@@ -14,11 +17,11 @@ def read_and_tokenize(filename):
   return tokenized
 
 def pmi(w1,w2, bigrams, unigrams):
-  return bigrams.prob(w2, [w1]) / (unigrams.prob(w1, []) * unigrams.prob(w2, []))
+  return unigrams.prob(w1,[]) * bigrams.prob(w2, [w1]) / (unigrams.prob(w1, []) * unigrams.prob(w2, []))
 
 def printPMI(pmi_list):
   for bigram,pmi in pmi_list:
-    print("%s %s -> %f" % (bigram[0], bigram[1], pmi))
+    print("%s %s -> %.03f" % (bigram[0], bigram[1], pmi))
 
 if __name__ == "__main__":
   est = lambda fdist, bins: MLEProbDist(fdist)
@@ -49,4 +52,9 @@ if __name__ == "__main__":
   print("=======================================")
   printPMI(bottom20)
 
+  pmis = pmi_results.values()
+  log_pmis = map(lambda pmi: log(pmi)/log(10), pmis)
+  plt.hist(log_pmis, 50)
+  plt.savefig("log_pmi_histogram")
+  print("created log pmi histogram in assets folder")
 
