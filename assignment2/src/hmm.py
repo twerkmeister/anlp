@@ -1,5 +1,5 @@
 import numpy as np
-from collections import defaultdict
+from collections import defaultdict,deque
 
 class HMM:
 
@@ -28,8 +28,13 @@ class HMM:
   def attributeForTransition(self, *states):
     self.transition_probabilities[states] += 1
 
-  def observe(observedWords, observedStates):
+  def observe(self, observedWords, observedStates):
+    state_window = deque(maxlen=self.n)
     for word,state in zip(observedWords, observedStates):
-      pass
+      attributeForEmission(state, word)
+      state_window.append(state)
+      if(len(state_window) == self.n):
+        attributeForTransition(*state_window)tal
+
 
 
