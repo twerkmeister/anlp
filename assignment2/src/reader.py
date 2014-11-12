@@ -15,11 +15,15 @@ class TagReader:
       buff = self.f.readlines(8096)
       yield buff
 
-  def readLines(self):
+  def readSentences(self):
+    sentence = []
     for buff in self.__readLines():
       for line in buff:
-        if len(line) > 1:
-          yield self.parseLine(line)
+        if(len(line) > 1):
+          sentence.append(self.parseLine(line))
+        else:
+          yield sentence
+          sentence = []
 
   def parseLine(self, line):
     word,tag = line.strip().split("\t")

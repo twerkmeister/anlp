@@ -6,18 +6,19 @@ from nltk.probability import FreqDist, GoodTuringProbDist
 
 class HMM:
 
-  def __init__(self, states, observations, n = 2):
+  def __init__(self, states, sentences, n = 2):
     self.states = states
     self.stateNumbers = range(0, len(states))
     self.n = n
     self.transition_counts = self.initTransitionCounts(states, n)
     self.emission_counts = self.initEmissionCounts(states)
-    self.observe(observations)
+    self.train(sentences)
     self.emission_probabilities = self.calculateEmissionProbabilities()
     self.transition_probabilities = self.calculateTransitionProbabilities()
 
   def initTransitionCounts(self, states, n):
-    return np.zeros((len(states),) * n)
+    #+1 for start of sentence state!
+    return np.zeros((len(states)+1,) * n)
 
   def initEmissionCounts(self, states):
     return [defaultdict(int) for state in states]
@@ -40,28 +41,43 @@ class HMM:
   def attributeForTransition(self, *states):
     self.transition_counts[states] += 1
 
-  def observe(self, observations):
-    state_window = deque(maxlen=self.n)
-    for word, state in observations:
-      self.attributeForEmission(state, word)
-      state_window.append(state)
-      if(len(state_window) == self.n):
-        self.attributeForTransition(*state_window)
+  def train(self, annotated_sentences):
+    for annotated_sentence in annotated_sentences:
+      #start deque with beginning of sentence state
+      state_window = deque([len(self.states)], maxlen=self.n)
+      for word, state in annotated_sentence:
+        self.attributeForEmission(state, word)
+        state_window.append(state)
+        if(len(state_window) == self.n):
+          self.attributeForTransition(*state_window)
 
-  def tag(self, words):
-    trellis = np.zeros((len(self.states), len(words)))
+  def tagSentence(self, sentence):
+    trellis = np.zeros((len(sentence), len(self.states)))
     pointers = []
-    state_window = deque(maxlen=self.n-1)
-    for t,word in enumerate(words):
+    #start deque with beginning of sentence state
+    state_window = deque([len(self.states)], maxlen=self.n-1)
+    for t,word in enumerate(sentence):
       for state in self.stateNumbers:
-        trellis[state,t] = self.getEmissionProbability(state, word) * self.getTransitionProbability(*list(state_window) + [state])
-        index, value = max(enumerate(trellis.transpose()[t,]), key=operator.itemgetter(1))
+        trellis[t,state] = self.getEmissionProbability(state, word) * self.getTransitionProbability(*list(state_window) + [state])
+        index, value = max(enumerate(trellis[t,]), key=operator.itemgetter(1))
       pointers.append(index)
       state_window.append(index)
 
     return pointers
 
+  def tagSentences(self, sentences):
+    return [self.tagSentence(sentence) for sentence in sentences]
 
+  def test(self, annotated_sentences):
+    confusion_matrix = np.zeros((len(self.states), len(self.states)))
+
+    for annotated_sentence in annotated_sentences:
+      sentence,tags = zip(*annotated_sentence)
+      inferred_tags = self.tagSentence(sentence)
+      for tag,inferred_tag in zip(tags, inferred_tags):
+        confusion_matrix[tag,inferred_tag] += 1
+
+    return confusion_matrix
 
   def __str__(self):
     res = "states: %s\n\n" % ", ".join(self.states)
