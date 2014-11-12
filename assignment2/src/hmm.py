@@ -1,8 +1,8 @@
 import numpy as np
 from collections import defaultdict,deque
 import operator
-import nltk
 from nltk.probability import FreqDist, GoodTuringProbDist
+from math import log
 
 class HMM:
 
@@ -22,6 +22,12 @@ class HMM:
 
   def initEmissionCounts(self, states):
     return [defaultdict(int) for state in states]
+
+  def getLogEmissionProbability(self, state, word):
+    return log(self.getEmissionProbability(state,word))
+
+  def getLogTransitionProbability(self, *states):
+    return log(self.getTransitionProbability(*states))
 
   def getEmissionProbability(self, state, word):
     return self.emission_probabilities[state][word]
@@ -58,7 +64,7 @@ class HMM:
     state_window = deque([len(self.states)], maxlen=self.n-1)
     for t,word in enumerate(sentence):
       for state in self.stateNumbers:
-        trellis[t,state] = self.getEmissionProbability(state, word) * self.getTransitionProbability(*list(state_window) + [state])
+        trellis[t,state] = self.getLogEmissionProbability(state, word) + self.getLogTransitionProbability(*list(state_window) + [state])
         index, value = max(enumerate(trellis[t,]), key=operator.itemgetter(1))
       pointers.append(index)
       state_window.append(index)
