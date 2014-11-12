@@ -3,7 +3,7 @@ from tagtransformer import TagTransformer
 
 class TagReader:
   def __init__(self, filename, tags):
-    self.f = io.open(filename)
+    self.f = io.open(filename, "rt", encoding="utf-8")
     self.tag_transformer = TagTransformer(tags)
 
   def __del__(self):

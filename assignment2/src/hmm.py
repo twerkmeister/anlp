@@ -1,6 +1,8 @@
 import numpy as np
 from collections import defaultdict,deque
 import operator
+import nltk
+from nltk.probability import FreqDist, GoodTuringProbDist
 
 class HMM:
 
@@ -70,5 +72,14 @@ class HMM:
     #res += str(self.emission_probabilities)
     return res
 
+class SmoothedHMM(HMM):
 
+  def createProbDist(self, counts):
+    fd = FreqDist(counts)
+    return GoodTuringProbDist(fd)
 
+  def calculateEmissionProbabilities(self):
+    return [self.createProbDist(d) for d in self.emission_counts]
+
+  def getEmissionProbability(self, state, word):
+    return self.emission_probabilities[state].prob(word)
