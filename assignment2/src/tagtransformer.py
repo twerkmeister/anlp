@@ -12,8 +12,8 @@ class TagTransformer:
 
   def transformAllToIndices(self, tags):
     for tag in tags:
-      yield transformToIndex(tag)
+      yield self.transformToIndex(tag)
 
   def transformAllToTags(self, indices):
     for index in indices:
-      yield transformToTag(index)
+      yield self.transformToTag(index)

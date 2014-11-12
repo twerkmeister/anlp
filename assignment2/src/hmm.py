@@ -1,40 +1,74 @@
 import numpy as np
 from collections import defaultdict,deque
+import operator
 
 class HMM:
 
-  def __init__(self, states, observedWords, observedStates, n = 2):
+  def __init__(self, states, observations, n = 2):
     self.states = states
+    self.stateNumbers = range(0, len(states))
     self.n = n
-    self.transition_probabilities = self.initTransitionProbabilities(states, n)
-    self.emission_probabilities = self.initEmissionProbabilities(states)
-    observe(observedWords, observedStates)
+    self.transition_counts = self.initTransitionCounts(states, n)
+    self.emission_counts = self.initEmissionCounts(states)
+    self.observe(observations)
+    self.emission_probabilities = self.calculateEmissionProbabilities()
+    self.transition_probabilities = self.calculateTransitionProbabilities()
 
-  def initTransitionProbabilities(self, states, n):
-    return np.zeros(len(states),) * n
+  def initTransitionCounts(self, states, n):
+    return np.zeros((len(states),) * n)
 
-  def initEmissionProbabilities(self, states, observedWords):
+  def initEmissionCounts(self, states):
     return [defaultdict(int) for state in states]
 
   def getEmissionProbability(self, state, word):
     return self.emission_probabilities[state][word]
   
   def getTransitionProbability(self, *states):
-    return self.transition_probabilities[states]
+    return self.transition_probabilities[states].sum()
+
+  def calculateTransitionProbabilities(self):
+    return self.transition_counts.astype("double") / self.transition_counts.sum()
+
+  def calculateEmissionProbabilities(self):
+    return [defaultdict(int, {k:float(v)/len(d) for k,v in d.items()}) for d in self.emission_counts]
 
   def attributeForEmission(self, state, word):
-    self.emission_probabilities[state][word] += 1
+    self.emission_counts[state][word] += 1
 
   def attributeForTransition(self, *states):
-    self.transition_probabilities[states] += 1
+    self.transition_counts[states] += 1
 
-  def observe(self, observedWords, observedStates):
+  def observe(self, observations):
     state_window = deque(maxlen=self.n)
-    for word,state in zip(observedWords, observedStates):
-      attributeForEmission(state, word)
+    for word, state in observations:
+      self.attributeForEmission(state, word)
       state_window.append(state)
       if(len(state_window) == self.n):
-        attributeForTransition(*state_window)tal
+        self.attributeForTransition(*state_window)
+
+  def tag(self, words):
+    trellis = np.zeros((len(self.states), len(words)))
+    pointers = []
+    state_window = deque(maxlen=self.n-1)
+    for t,word in enumerate(words):
+      for state in self.stateNumbers:
+        trellis[state,t] = self.getEmissionProbability(state, word) * self.getTransitionProbability(*list(state_window) + [state])
+        index, value = max(enumerate(trellis.transpose()[t,]), key=operator.itemgetter(1))
+      pointers.append(index)
+      state_window.append(index)
+
+    return pointers
+
+
+
+  def __str__(self):
+    res = "states: %s\n\n" % ", ".join(self.states)
+    res += "transitions:\n"
+    res += str(self.transition_probabilities)
+    #res += "\n\n"
+    #res += "emissions:\n"
+    #res += str(self.emission_probabilities)
+    return res
 
 
 
