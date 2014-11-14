@@ -1,10 +1,11 @@
 import numpy as np
 from collections import defaultdict,deque
 import operator
-from nltk.probability import FreqDist, GoodTuringProbDist
+from nltk.probability import FreqDist, SimpleGoodTuringProbDist
 from math import log
+from itertools import combinations
 
-class HMM:
+class HMM(object):
 
   def __init__(self, states, sentences, n = 2):
     self.states = states
@@ -33,13 +34,14 @@ class HMM:
     return self.emission_probabilities[state][word]
   
   def getTransitionProbability(self, *states):
-    return self.transition_probabilities[states].sum()
+    return self.transition_probabilities[states]
 
   def calculateTransitionProbabilities(self):
     return self.transition_counts.astype("double") / self.transition_counts.sum()
 
   def calculateEmissionProbabilities(self):
-    return [defaultdict(int, {k:float(v)/len(d) for k,v in d.items()}) for d in self.emission_counts]
+    sums = [sum(d.values()) for d in self.emission_counts]
+    return [defaultdict(int, {k:float(v)/sums[i] for k,v in d.items()}) for i,d in enumerate(self.emission_counts)]
 
   def attributeForEmission(self, state, word):
     self.emission_counts[state][word] += 1
@@ -57,19 +59,43 @@ class HMM:
         if(len(state_window) == self.n):
           self.attributeForTransition(*state_window)
 
+  def __prob(self, trellis, t, state, word, past_states):
+    if t==0:
+      return (self.getLogTransitionProbability(*past_states + [state]) +  
+             self.getLogEmissionProbability(state, word))
+    else:
+      return (trellis[t-1,past_states[-1]] + 
+             self.getLogTransitionProbability(*past_states + [state]) +
+             self.getLogEmissionProbability(state,word))
+
+  def __viterbi(self, trellis, t, state, word):
+    if t==0:
+      return (len(self.stateNumbers), self.__prob(trellis, t, state, word, [len(self.states)]))
+    else:
+      results = []
+      for past_state in self.stateNumbers:
+        results.append(self.__prob(trellis, t, state, word, [past_state]))
+
+      return max(enumerate(results), key=operator.itemgetter(1))
+
+  def buildSequence(self, tags, pointers, t):
+    if t <= 1:
+      tags.reverse()
+      return tags
+    else:
+      tags.append(pointers[t-1, tags[-1]])
+      return self.buildSequence(tags, pointers, t-1)
+
   def tagSentence(self, sentence):
+    # print "tagging %s" % " ".join(sentence)
     trellis = np.zeros((len(sentence), len(self.states)))
-    pointers = []
-    #start deque with beginning of sentence state
-    state_window = deque([len(self.states)], maxlen=self.n-1)
+    pointers = trellis.copy()
     for t,word in enumerate(sentence):
       for state in self.stateNumbers:
-        trellis[t,state] = self.getLogEmissionProbability(state, word) + self.getLogTransitionProbability(*list(state_window) + [state])
-        index, value = max(enumerate(trellis[t,]), key=operator.itemgetter(1))
-      pointers.append(index)
-      state_window.append(index)
-
-    return pointers
+        pointers[t,state], trellis[t,state] = self.__viterbi(trellis, t, state, word)
+      
+    final_tag, max_value = max(enumerate(trellis[t,]), key=operator.itemgetter(1))
+    return self.buildSequence([final_tag], pointers, t)
 
   def tagSentences(self, sentences):
     return [self.tagSentence(sentence) for sentence in sentences]
@@ -98,10 +124,32 @@ class SmoothedHMM(HMM):
 
   def createProbDist(self, counts):
     fd = FreqDist(counts)
-    return GoodTuringProbDist(fd)
+    return SimpleGoodTuringProbDist(fd)
 
   def calculateEmissionProbabilities(self):
     return [self.createProbDist(d) for d in self.emission_counts]
 
   def getEmissionProbability(self, state, word):
     return self.emission_probabilities[state].prob(word)
+
+class AddOneHMM(HMM):
+  def calculateTransitionProbabilities(self):
+    return self.transition_counts.astype("double") + 1 / (self.transition_counts.sum()+len(self.states)**self.n)
+
+  def calculateEmissionProbabilities(self):
+    sums = [sum(d.values()) for d in self.emission_counts]
+    return [defaultdict(lambda: 1.0/len(d), {k:float(v)+1/(sums[i]+len(d)) for k,v in d.items()}) for i,d in enumerate(self.emission_counts)]
+
+class FasterHMM(AddOneHMM):
+  def calculateTransitionProbabilities(self):
+    return np.log(super(AddOneHMM, self).calculateTransitionProbabilities())
+
+  def getLogTransitionProbability(self, *states):
+    return self.getTransitionProbability(*states)
+
+  def calculateEmissionProbabilities(self):
+    sums = [sum(d.values()) for d in self.emission_counts]
+    return [defaultdict(lambda: log(1.0/len(d)), {k:log(float(v)+1/(sums[i]+len(d))) for k,v in d.items()}) for i,d in enumerate(self.emission_counts)]
+
+  def getLogEmissionProbability(self, state, word):
+    return self.getEmissionProbability(state,word)
