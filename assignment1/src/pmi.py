@@ -4,6 +4,7 @@ import sys
 from collections import Counter
 from nltk.model.ngram import NgramModel
 from nltk.probability import MLEProbDist
+import random
 
 import matplotlib.pyplot as plt
 from math import log
@@ -29,6 +30,7 @@ if __name__ == "__main__":
   os.chdir(script_dir + "/../assets")
   filename = "AV1611Bible.txt"
   tokens = read_and_tokenize(filename)
+  random.shuffle(tokens)
   counts = Counter(tokens)
   common_words = [k for (k,v) in counts.items() if v >= 10]
   # filtered_tokens = filter(lambda token: token in frequent_words, tokens)
@@ -55,6 +57,6 @@ if __name__ == "__main__":
   pmis = pmi_results.values()
   log_pmis = map(lambda pmi: log(pmi)/log(10), pmis)
   plt.hist(log_pmis, 50)
-  plt.savefig("log_pmi_histogram")
+  plt.savefig("log_pmi_histogram_random")
   print("created log pmi histogram in assets folder")
 
