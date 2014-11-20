@@ -3,7 +3,7 @@ from collections import defaultdict,deque
 import operator
 from nltk.probability import FreqDist, SimpleGoodTuringProbDist
 from math import log
-from itertools import combinations
+from itertools import product
 
 class HMM(object):
 
@@ -60,21 +60,19 @@ class HMM(object):
         if(len(state_window) == self.n):
           self.attributeForTransition(tuple(state_window))
 
-  def __prob(self, trellis, t, state, word, past_states):
-    if t==0:
-      return (self.getLogTransitionProbability(past_states + (state,)) +  
-             self.getLogEmissionProbability(state, word))
-    else:
-      return (trellis[(t-1,) + past_states] + 
-             self.getLogTransitionProbability(past_states + (state,)) +
-             self.getLogEmissionProbability(state,word))
-
-  def __viterbi(self, trellis, t, state, word):
-      start_states = (len(self.states),) * max(0, self.n - 1 - t)
-      past_states_combos = [start_states + combo for combo in combinations(self.stateNumbers, min(self.n -1, t))]
-      results = [(combo, self.__prob(trellis, t, state, word, combo)) for combo in past_states_combos ]
-      # if self.first:
-        # print results
+  def __prob(self, trellis, t, final_states, word, state):
+    prior_log_prob = 0 if t == 0 else trellis[(t-1,) + (state,) + final_states[:-1]]
+    transition_log_prob = self.getLogTransitionProbability((state,) + final_states)
+    emission_log_prob = self.getLogEmissionProbability(final_states[-1],word)
+    return prior_log_prob + transition_log_prob + emission_log_prob
+             
+  def __viterbi(self, trellis, t, final_states, word):
+      results = []
+      if(t < self.n -1):
+        state = len(self.states)
+        results = [(state, self.__prob(trellis, t, final_states, word, state))]
+      else:
+        results = [(state, self.__prob(trellis, t, final_states, word, state)) for state in self.stateNumbers]
       return max(results, key=operator.itemgetter(1))
 
   def buildSequence(self, tags, pointers, t):
@@ -87,31 +85,26 @@ class HMM(object):
   def tagSentence(self, sentence):
     trellis = np.zeros((len(sentence),) + (len(self.states)+1,) * (self.n-1))
     pointers = trellis.copy()
+    i = []
     for t,word in enumerate(sentence):
-      for state in self.stateNumbers:
-        past_states, log_probability = self.__viterbi(trellis, t, state, word)
-        fill_states = past_states[-(self.n-2):] if self.n > 2 else tuple()
-        trellis_index = (t,) + fill_states + (state,)
-        if(self.first)
-          print trellis_index
+      start_states = (len(self.states),) * max(0, self.n - 2 - t)
+      state_combos = [start_states + combo for combo in product(self.stateNumbers, repeat=min(self.n -1, t+1))]
+      i.append(len(state_combos))
+      for combo in state_combos:
+        state, log_probability = self.__viterbi(trellis, t, combo, word)
+        trellis_index = (t,) + combo
         trellis[trellis_index] = log_probability
-        pointers[trellis_index] = past_states[0]
+        pointers[trellis_index] = state
 
-    if(self.first):
-      # print pointers
-      # print trellis
-      self.first = False
       
-    final_tags, max_value = max([(combo, trellis[(t,) + combo]) for combo in combinations(self.stateNumbers, self.n-1)], key=operator.itemgetter(1))
+    final_tags, max_value = max([(combo, trellis[(t,) + combo]) for combo in product(self.stateNumbers, repeat=self.n-1)], key=operator.itemgetter(1))
     return self.buildSequence(final_tags, pointers, t)
 
   def tagSentences(self, sentences):
     return [self.tagSentence(sentence) for sentence in sentences]
 
   def test(self, annotated_sentences, tag_writer = None):
-    self.first = True
     confusion_matrix = np.zeros((len(self.states), len(self.states)))
-    print self.transition_probabilities[(12,12)]
     for annotated_sentence in annotated_sentences:
       sentence,tags = zip(*annotated_sentence)
       inferred_tags = self.tagSentence(sentence)
@@ -136,7 +129,7 @@ class SmoothedHMM(HMM):
 
 class AddOneHMM(HMM):
   def calculateTransitionProbabilities(self):
-    return (self.transition_counts.astype("double") + 1) / (self.transition_counts.sum()+len(self.states)**self.n)
+    return (self.transition_counts.astype("double") + 1.0/self.n) / (self.transition_counts.sum()+len(self.states)**(self.n-1))
 
   def calculateEmissionProbabilities(self):
     sums = [sum(d.values()) for d in self.emission_counts]
