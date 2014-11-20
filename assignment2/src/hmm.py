@@ -27,13 +27,13 @@ class HMM(object):
   def getLogEmissionProbability(self, state, word):
     return log(self.getEmissionProbability(state,word))
 
-  def getLogTransitionProbability(self, *states):
-    return log(self.getTransitionProbability(*states))
+  def getLogTransitionProbability(self, states):
+    return log(self.getTransitionProbability(states))
 
   def getEmissionProbability(self, state, word):
     return self.emission_probabilities[state][word]
   
-  def getTransitionProbability(self, *states):
+  def getTransitionProbability(self, states):
     return self.transition_probabilities[states]
 
   def calculateTransitionProbabilities(self):
@@ -46,7 +46,7 @@ class HMM(object):
   def attributeForEmission(self, state, word):
     self.emission_counts[state][word] += 1
 
-  def attributeForTransition(self, *states):
+  def attributeForTransition(self, states):
     self.transition_counts[states] += 1
 
   def train(self, annotated_sentences):
@@ -57,24 +57,24 @@ class HMM(object):
         self.attributeForEmission(state, word)
         state_window.append(state)
         if(len(state_window) == self.n):
-          self.attributeForTransition(*state_window)
+          self.attributeForTransition(tuple(state_window))
 
   def __prob(self, trellis, t, state, word, past_states):
     if t==0:
-      return (self.getLogTransitionProbability(*past_states + [state]) +  
+      return (self.getLogTransitionProbability(past_states + (state,)) +  
              self.getLogEmissionProbability(state, word))
     else:
       return (trellis[t-1,past_states[-1]] + 
-             self.getLogTransitionProbability(*past_states + [state]) +
+             self.getLogTransitionProbability(past_states + (state,)) +
              self.getLogEmissionProbability(state,word))
 
   def __viterbi(self, trellis, t, state, word):
     if t==0:
-      return (len(self.states), self.__prob(trellis, t, state, word, [len(self.states)]))
+      return (len(self.states), self.__prob(trellis, t, state, word, (len(self.states),)))
     else:
       results = []
       for past_state in self.stateNumbers:
-        results.append(self.__prob(trellis, t, state, word, [past_state]))
+        results.append(self.__prob(trellis, t, state, word, (past_state,)))
 
       return max(enumerate(results), key=operator.itemgetter(1))
 
@@ -136,8 +136,8 @@ class FasterHMM(AddOneHMM):
   def calculateTransitionProbabilities(self):
     return np.log(super(AddOneHMM, self).calculateTransitionProbabilities())
 
-  def getLogTransitionProbability(self, *states):
-    return self.getTransitionProbability(*states)
+  def getLogTransitionProbability(self, states):
+    return self.getTransitionProbability(states)
 
   def calculateEmissionProbabilities(self):
     sums = [sum(d.values()) for d in self.emission_counts]
