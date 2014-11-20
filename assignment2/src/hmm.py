@@ -70,7 +70,7 @@ class HMM(object):
 
   def __viterbi(self, trellis, t, state, word):
     if t==0:
-      return (len(self.stateNumbers), self.__prob(trellis, t, state, word, [len(self.states)]))
+      return (len(self.states), self.__prob(trellis, t, state, word, [len(self.states)]))
     else:
       results = []
       for past_state in self.stateNumbers:
@@ -79,15 +79,14 @@ class HMM(object):
       return max(enumerate(results), key=operator.itemgetter(1))
 
   def buildSequence(self, tags, pointers, t):
-    if t <= 1:
+    if t < 1:
       tags.reverse()
       return tags
     else:
-      tags.append(pointers[t-1, tags[-1]])
+      tags.append(pointers[t, tags[-1]])
       return self.buildSequence(tags, pointers, t-1)
 
   def tagSentence(self, sentence):
-    # print "tagging %s" % " ".join(sentence)
     trellis = np.zeros((len(sentence), len(self.states)))
     pointers = trellis.copy()
     for t,word in enumerate(sentence):
@@ -100,7 +99,7 @@ class HMM(object):
   def tagSentences(self, sentences):
     return [self.tagSentence(sentence) for sentence in sentences]
 
-  def test(self, annotated_sentences):
+  def test(self, annotated_sentences, tag_writer = None):
     confusion_matrix = np.zeros((len(self.states), len(self.states)))
 
     for annotated_sentence in annotated_sentences:
@@ -108,17 +107,10 @@ class HMM(object):
       inferred_tags = self.tagSentence(sentence)
       for tag,inferred_tag in zip(tags, inferred_tags):
         confusion_matrix[tag,inferred_tag] += 1
+      if(tag_writer):
+        tag_writer.writeSentence(sentence, inferred_tags)
 
     return confusion_matrix
-
-  def __str__(self):
-    res = "states: %s\n\n" % ", ".join(self.states)
-    res += "transitions:\n"
-    res += str(self.transition_probabilities)
-    #res += "\n\n"
-    #res += "emissions:\n"
-    #res += str(self.emission_probabilities)
-    return res
 
 class SmoothedHMM(HMM):
 

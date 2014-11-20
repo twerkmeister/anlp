@@ -1,5 +1,6 @@
 
 from reader import TagReader
+from writer import TagWriter
 from hmm import HMM, SmoothedHMM, AddOneHMM, FasterHMM
 import sys
 import codecs
@@ -11,6 +12,7 @@ sys.stdout = UTF8Writer(sys.stdout)
 tags = [u'ADV', u'NOUN', u'ADP', u'PRT', u'DET', u'.', u'PRON', u'VERB', u'X', u'NUM', u'CONJ', u'ADJ']
 trainingDataFile = "../assets/de-train.tt"
 testDataFile = "../assets/de-eval.tt"
+ResultsFile = "../assets/de-result.tt"
 
 np.set_printoptions(suppress=True)
 
@@ -60,5 +62,6 @@ if __name__ == "__main__":
   hmm = AddOneHMM(tags, training_sentences, 2)
   # print(hmm)
   # words = ["Der", "Hauptgang", "war", "in", "Ordnung", ",", "aber", "alles", "andere", "als", "umwerfend"]
-  confusion = hmm.test(test_sentences)
+  writer = TagWriter(ResultsFile, tags)
+  confusion = hmm.test(test_sentences, writer)
   prettyPrintConfusionMatrix(confusion)
