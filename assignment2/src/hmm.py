@@ -134,17 +134,3 @@ class AddOneHMM(HMM):
   def calculateEmissionProbabilities(self):
     sums = [sum(d.values()) for d in self.emission_counts]
     return [defaultdict(lambda: 1.0/len(d), {k:float(v)+1/(sums[i]+len(d)) for k,v in d.items()}) for i,d in enumerate(self.emission_counts)]
-
-class FasterHMM(AddOneHMM):
-  def calculateTransitionProbabilities(self):
-    return np.log(super(AddOneHMM, self).calculateTransitionProbabilities())
-
-  def getLogTransitionProbability(self, states):
-    return self.getTransitionProbability(states)
-
-  def calculateEmissionProbabilities(self):
-    sums = [sum(d.values()) for d in self.emission_counts]
-    return [defaultdict(lambda: log(1.0/len(d)), {k:log(float(v)+1/(sums[i]+len(d))) for k,v in d.items()}) for i,d in enumerate(self.emission_counts)]
-
-  def getLogEmissionProbability(self, state, word):
-    return self.getEmissionProbability(state,word)
