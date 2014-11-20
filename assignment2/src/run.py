@@ -14,6 +14,8 @@ trainingDataFile = "../assets/de-train.tt"
 testDataFile = "../assets/de-eval.tt"
 ResultsFile = "../assets/de-result.tt"
 
+N = 2
+
 np.set_printoptions(suppress=True)
 
 def prettyPrintConfusionMatrix(confusion_matrix):
@@ -59,7 +61,7 @@ if __name__ == "__main__":
   training_sentences = training.readSentences()
   test = TagReader(testDataFile, tags)
   test_sentences = test.readSentences()
-  hmm = Add1DivNHMM(tags, training_sentences, 2)
+  hmm = Add1DivNHMM(tags, training_sentences, N)
   # print(hmm)
   # words = ["Der", "Hauptgang", "war", "in", "Ordnung", ",", "aber", "alles", "andere", "als", "umwerfend"]
   writer = TagWriter(ResultsFile, tags)
