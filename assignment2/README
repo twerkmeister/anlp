@@ -1,0 +1,6 @@
+change to src and run .run.py
+
+Edit run.py and edit the variable N to switch to trigram or quadgram or more (only tested tri and quadgram and it's implemented in a generalized fashion)
+
+
+
