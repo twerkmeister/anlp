@@ -1,7 +1,7 @@
 
 from reader import TagReader
 from writer import TagWriter
-from hmm import HMM, SmoothedHMM, AddOneHMM, FasterHMM
+from hmm import HMM, SmoothedHMM, AddOneHMM, Add1DivNHMM
 import sys
 import codecs
 import numpy as np
@@ -59,7 +59,7 @@ if __name__ == "__main__":
   training_sentences = training.readSentences()
   test = TagReader(testDataFile, tags)
   test_sentences = test.readSentences()
-  hmm = AddOneHMM(tags, training_sentences, 2)
+  hmm = Add1DivNHMM(tags, training_sentences, 2)
   # print(hmm)
   # words = ["Der", "Hauptgang", "war", "in", "Ordnung", ",", "aber", "alles", "andere", "als", "umwerfend"]
   writer = TagWriter(ResultsFile, tags)

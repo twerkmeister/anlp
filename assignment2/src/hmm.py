@@ -129,6 +129,14 @@ class SmoothedHMM(HMM):
 
 class AddOneHMM(HMM):
   def calculateTransitionProbabilities(self):
+    return (self.transition_counts.astype("double") + 1) / (self.transition_counts.sum()+len(self.states)**self.n)
+
+  def calculateEmissionProbabilities(self):
+    sums = [sum(d.values()) for d in self.emission_counts]
+    return [defaultdict(lambda: 1.0/len(d), {k:float(v)+1/(sums[i]+len(d)) for k,v in d.items()}) for i,d in enumerate(self.emission_counts)]
+
+class Add1DivNHMM(HMM):
+  def calculateTransitionProbabilities(self):
     return (self.transition_counts.astype("double") + 1.0/self.n) / (self.transition_counts.sum()+len(self.states)**(self.n-1))
 
   def calculateEmissionProbabilities(self):
