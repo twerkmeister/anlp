@@ -1,0 +1,40 @@
+3507   18    0  100.00 100.00    16     16   16      0     16    15    93.75
+3508    7    0  100.00 100.00     6      6    6      0      6     6   100.00
+3509   24    0   79.17  79.17    19     24   24      2     21    21   100.00
+3510    5    0  100.00 100.00     4      4    4      0      4     4   100.00
+3511   13    0   83.33 100.00    10     12   10      0     10     9    90.00
+3512   40    0   87.50  89.74    35     40   39      3     34    31    91.18
+3513   19    0  100.00 100.00    14     14   14      0     14    14   100.00
+3514   18    0   94.12 100.00    16     17   16      0     16    16   100.00
+3515   16    0   84.21  84.21    16     19   19      0     14    13    92.86
+============================================================================
+                 85.60  86.24  57553 67232 66734   5343  69060 65368    94.65
+=== Summary ===
+
+-- All --
+Number of sentence        =   3515
+Number of Error sentence  =     14
+Number of Skip  sentence  =      0
+Number of Valid sentence  =   3501
+Bracketing Recall         =  85.60
+Bracketing Precision      =  86.24
+Bracketing FMeasure       =  85.92
+Complete match            =  27.73
+Average crossing          =   1.53
+No crossing               =  57.10
+2 or less crossing        =  78.95
+Tagging accuracy          =  94.65
+
+-- len<=40 --
+Number of sentence        =   3226
+Number of Error sentence  =     13
+Number of Skip  sentence  =      0
+Number of Valid sentence  =   3213
+Bracketing Recall         =  87.12
+Bracketing Precision      =  87.71
+Bracketing FMeasure       =  87.41
+Complete match            =  30.10
+Average crossing          =   1.15
+No crossing               =  61.16
+2 or less crossing        =  83.22
+Tagging accuracy          =  94.74

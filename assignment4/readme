@@ -1,0 +1,160 @@
+
+I've been testing the Stanford lexicalized Parser and the Berkeley parser and did significatnce tests using randomized approximization. The outputs of the parsers for the different testcases (1,2,3,all) can be found in the results folder.
+The naming scheme is (1|2|3|all).(stanford|berkeley). Also in this folder summaries of the output of the evalb program can be found. They have the suffix eval.(labeled|unlabeled).
+
+I automatized the whole parsing and hypotheses testing process by writing the scripts run.sh, createRandomizedApproximizations.py and evaluateRandomizedApproximizations.py. run.sh is the main script which takes the necessary steps in the right order to create parsings, evaluations and randomized approximization.
+
+As I wrote in piazza, it seems I didn't find the right flag/option for the Stanford parser. In my tests the Stanford parser consistently performs a lot worse than the berkeley parser -- around 3.0-4.0 points worse in recall, precision and f1. As a result all my p values are 0, since it is so unlikely that a 3-4 point increase just happens by chance. Hence, I had to reject all 0-Hypotheses with great confidence.
+
+Here are my results for all testcases in labeled and unlabeled manner:
+
+testcase 1 labeled
+======================
+stanford Recall: 84.970000
+stanford Precision: 86.480000
+stanford FMeasure: 85.720000
+
+berkeley Recall: 89.580000
+berkeley Precision: 90.630000
+berkeley FMeasure: 90.100000
+
+recall diff: 4.610000 
+precision diff: 4.150000
+fmeasure diff: 4.380000
+
+recall p: 0.000000
+precision p: 0.000000
+fmeasure p: 0.000000
+
+
+testcase 1 unlabeled
+======================
+stanford Recall: 86.600000
+stanford Precision: 88.140000
+stanford FMeasure: 87.360000
+
+berkeley Recall: 90.740000
+berkeley Precision: 91.810000
+berkeley FMeasure: 91.270000
+
+recall diff: 4.140000 
+precision diff: 3.670000
+fmeasure diff: 3.910000
+
+recall p: 0.000000
+precision p: 0.000000
+fmeasure p: 0.000000
+
+
+testcase 2 labeled
+======================
+stanford Recall: 82.110000
+stanford Precision: 82.270000
+stanford FMeasure: 82.190000
+
+berkeley Recall: 85.780000
+berkeley Precision: 85.890000
+berkeley FMeasure: 85.830000
+
+recall diff: 3.670000 
+precision diff: 3.620000
+fmeasure diff: 3.640000
+
+recall p: 0.000000
+precision p: 0.000000
+fmeasure p: 0.000000
+
+
+testcase 2 unlabeled
+======================
+stanford Recall: 84.180000
+stanford Precision: 84.340000
+stanford FMeasure: 84.260000
+
+berkeley Recall: 87.530000
+berkeley Precision: 87.630000
+berkeley FMeasure: 87.580000
+
+recall diff: 3.350000 
+precision diff: 3.290000
+fmeasure diff: 3.320000
+
+recall p: 0.000000
+precision p: 0.000000
+fmeasure p: 0.000000
+
+
+testcase 3 labeled
+======================
+stanford Recall: 83.720000
+stanford Precision: 83.520000
+stanford FMeasure: 83.620000
+
+berkeley Recall: 86.800000
+berkeley Precision: 87.130000
+berkeley FMeasure: 86.970000
+
+recall diff: 3.080000 
+precision diff: 3.610000
+fmeasure diff: 3.350000
+
+recall p: 0.000000
+precision p: 0.000000
+fmeasure p: 0.000000
+
+
+testcase 3 unlabeled
+======================
+stanford Recall: 86.560000
+stanford Precision: 86.350000
+stanford FMeasure: 86.450000
+
+berkeley Recall: 89.200000
+berkeley Precision: 89.530000
+berkeley FMeasure: 89.370000
+
+recall diff: 2.640000 
+precision diff: 3.180000
+fmeasure diff: 2.920000
+
+recall p: 0.000000
+precision p: 0.000000
+fmeasure p: 0.000000
+
+
+testcase all labeled
+======================
+stanford Recall: 83.570000
+stanford Precision: 84.190000
+stanford FMeasure: 83.880000
+
+berkeley Recall: 87.510000
+berkeley Precision: 88.020000
+berkeley FMeasure: 87.760000
+
+recall diff: 3.940000 
+precision diff: 3.830000
+fmeasure diff: 3.880000
+
+recall p: 0.000000
+precision p: 0.000000
+fmeasure p: 0.000000
+
+
+testcase all unlabeled
+======================
+stanford Recall: 85.600000
+stanford Precision: 86.240000
+stanford FMeasure: 85.920000
+
+berkeley Recall: 89.140000
+berkeley Precision: 89.670000
+berkeley FMeasure: 89.400000
+
+recall diff: 3.540000 
+precision diff: 3.430000
+fmeasure diff: 3.480000
+
+recall p: 0.000000
+precision p: 0.000000
+fmeasure p: 0.000000
