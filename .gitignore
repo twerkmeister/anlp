@@ -4,3 +4,4 @@ assets/
 *.png
 stanford-parser/
 berkeley-parser/
+ENV/
