@@ -1,17 +1,20 @@
-from graphreader import GraphReader
+from graphIO import GraphReader, GraphWriter
 from graph import *
 import sys
 
+import codecs
+
+UTF8Writer = codecs.getwriter('utf8')
+sys.stdout = UTF8Writer(sys.stdout)
 
 def main():
   graphReader = GraphReader(sys.argv[1])
-  graphs = graphReader.readGraphs()
-  for sentenceId, graph in graphs.items()[:2]:
-    print sentenceId
-    transformToGraph(graph)
-  trees = None # transform graphs to trees
-  back_transformed_graphs = None #transform those dependencies trees back
-
+  nodeLists = graphReader.readNodeLists()
+  graphs = [SemanticGraph(sentenceId, nodes) for sentenceId, nodes in nodeLists]
+  trees = [createDepdencyTreeFromGraph(graph) for graph in graphs]
+  back_transformed_graphs = [createGraphFromDepdendencyTree(tree) for tree in trees]
+  graphWriter = GraphWriter(sys.argv[1]+".processed")
+  graphWriter.writeNodeLists(graphs)
 
 if __name__ == '__main__':
   if len(sys.argv) < 2:
