@@ -55,13 +55,7 @@ class BaselineGraphToTreeAlgorithm(AbstractGraphToTreeAlgorithm):
 
     for node in graph.nodesWithoutIncomingEdges():
       graph.add_edge(0, node, edge_label = "_root_")
-    
-    import pdb; pdb.set_trace()
-    
-
-    #attach
-
-
+      
     return graph
 
 
