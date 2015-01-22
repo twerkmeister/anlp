@@ -1,9 +1,10 @@
 import networkx as nx
 import matplotlib.pyplot as plt
+from collections import defaultdict
 
 class Node(object):
   def __init__(self, ID, word, lemma, POStag, isTopWord, isPredicate, *incomingEdges):
-    self.ID = ID
+    self.ID = int(ID)
     self.word = word
     self.lemma = lemma
     self.POStag = POStag
@@ -11,8 +12,9 @@ class Node(object):
     self.isPredicate = True if isPredicate == "+" else False
     self.incomingEdges = incomingEdges
 
-def createDepdencyTreeFromGraph(graph):
-  return graph
+  @staticmethod
+  def rootNode():
+    return Node(u'0', u'__ROOT__', u'', u'', False, False, [])
 
 def createGraphFromDepdendencyTree(tree):
   return tree
@@ -21,21 +23,57 @@ class SemanticGraph(nx.DiGraph):
   def __init__(self, sentenceId, nodes):
     super(SemanticGraph, self).__init__()
     self.sentenceId = sentenceId
+    self.nodeList = nodes
+    self.incomingEdges = {}
+    self.predicates = []
     self.initWithNodeList(nodes)
 
+  def add_complex_node(self, node):
+    self.add_node(node.ID, node.__dict__)
+    if node.isPredicate:
+      self.predicates.append(node.ID)
+
   def initWithNodeList(self, nodes):
-    predicates = []
     for node in nodes:
-      self.add_node(node.ID, node.__dict__)
-      if node.isPredicate:
-        predicates.append(node.ID)
+      self.add_complex_node(node)
     for node in nodes:
       for index,edge_label in enumerate(node.incomingEdges):
         if edge_label != "_":
-          self.add_edge(predicates[index],node.ID,label = edge_label)
+          self.add_edge(self.predicates[index],node.ID,label = edge_label)
+
+  def add_node(self, *args, **kwargs):
+    super(SemanticGraph, self).add_node(*args, **kwargs)
+    self.updateIncomingEdges()
+
+  def add_edge(self, *args, **kwargs):
+    super(SemanticGraph, self).add_edge(*args, **kwargs)
+    self.updateIncomingEdges()
+
+  def remove_edge(self, *args, **kwargs):
+    super(SemanticGraph, self).remove_edge(*args, **kwargs)
+    self.updateIncomingEdges()
+
+  def updateIncomingEdges(self):
+    self.incomingEdges = {node:{} for node in self.edge.keys()}
+    for node,outgoingEdges in self.edge.items():
+      for target,attr in outgoingEdges.items():
+        self.incomingEdges[target][node]=attr
+
+  def nodesWithoutIncomingEdges(self):
+    return [ID for ID,sources in self.incomingEdges.items() if len(sources) == 0]
+
+  def nodesWithoutOutgoingEdges(self):
+    return [ID for ID,dest in self.edge.items() if len(dest) == 0]
+
+  def singletons(self):
+    nodesNoIncoming = self.nodesWithoutIncomingEdges()
+    nodesNoOutgoing = self.nodesWithoutOutgoingEdges()
+    singletons = [ID for ID in self.node.keys() if ID in nodesNoIncoming and ID in nodesNoOutgoing]
+    return singletons
 
   def draw(self):
-    nx.draw_networkx(self)
+    labels = {ID:attr['word']+"("+str(ID)+")" for ID,attr in self.node.items()}
+    nx.draw_networkx(self, labels=labels, node_color="w", node_size=1000, node_shape="_", font_size=15)
     plt.draw()
     plt.show()
 
@@ -46,7 +84,7 @@ class SemanticGraph(nx.DiGraph):
 
     result = u"%s\n" % self.sentenceId
     for i in range(1, len(self.node)+1):
-      node = self.node[str(i)]
+      node = self.node[i]
       values = [node["ID"], node["word"], node["lemma"], node["POStag"], transformBoolean(node["isTopWord"]), transformBoolean(node["isPredicate"])]
       values += node["incomingEdges"]
       result += u"\t".join(values) + u"\n"

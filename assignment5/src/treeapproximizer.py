@@ -1,5 +1,6 @@
 from graphIO import GraphReader, GraphWriter
 from graph import *
+from graphToTree import BaselineGraphToTreeAlgorithm
 import sys
 
 import codecs
@@ -9,9 +10,12 @@ sys.stdout = UTF8Writer(sys.stdout)
 
 def main():
   graphReader = GraphReader(sys.argv[1])
+  graphToTreeTransformer = BaselineGraphToTreeAlgorithm()
+
   nodeLists = graphReader.readNodeLists()
   graphs = [SemanticGraph(sentenceId, nodes) for sentenceId, nodes in nodeLists]
-  trees = [createDepdencyTreeFromGraph(graph) for graph in graphs]
+  trees = [graphToTreeTransformer.transform(graph) for graph in graphs]
+  import pdb; pdb.set_trace()
   back_transformed_graphs = [createGraphFromDepdendencyTree(tree) for tree in trees]
   graphWriter = GraphWriter(sys.argv[1]+".processed")
   graphWriter.writeNodeLists(graphs)
