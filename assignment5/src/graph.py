@@ -45,6 +45,10 @@ class SemanticGraph(nx.DiGraph):
     super(SemanticGraph, self).add_node(*args, **kwargs)
     self.updateIncomingEdges()
 
+  def remove_node(self, *args, **kwargs):
+    super(SemanticGraph, self).remove_node(*args, **kwargs)
+    self.updateIncomingEdges()
+
   def add_edge(self, *args, **kwargs):
     super(SemanticGraph, self).add_edge(*args, **kwargs)
     self.updateIncomingEdges()
@@ -77,15 +81,32 @@ class SemanticGraph(nx.DiGraph):
     plt.draw()
     plt.show()
 
+  #I think this is only needed before writing to file
+  def updateNodes(self):
+    #find predicates
+    self.predicates = []
+    for source, destinations in self.edge.items():
+      if len(destinations) > 0:
+        self.predicates.append(source)
+    self.predicates.sort()
+    #update predicate status and incomingEdges list for nodes
+    for ID, nodeAttr in self.node.items():
+      nodeAttr["isPredicate"] = ID in self.predicates
+      nodeAttr["incomingEdges"] = [u"_"] * len(self.predicates)
+      for source,edgeAttr in self.incomingEdges[ID].items():
+        predicateIndex = self.predicates.index(source)
+        nodeAttr["incomingEdges"][predicateIndex] = edgeAttr["label"]
+
   def stringify(self):
+    self.updateNodes()
     def transformBoolean(b):
-      if b: return "+"
+      if b: return "+" 
       else: return "-"
 
     result = u"%s\n" % self.sentenceId
     for i in range(1, len(self.node)+1):
       node = self.node[i]
-      values = [node["ID"], node["word"], node["lemma"], node["POStag"], transformBoolean(node["isTopWord"]), transformBoolean(node["isPredicate"])]
+      values = [unicode(node["ID"]), node["word"], node["lemma"], node["POStag"], transformBoolean(node["isTopWord"]), transformBoolean(node["isPredicate"])]
       values += node["incomingEdges"]
       result += u"\t".join(values) + u"\n"
     return result

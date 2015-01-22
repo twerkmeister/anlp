@@ -42,7 +42,7 @@ class BaselineGraphToTreeAlgorithm(AbstractGraphToTreeAlgorithm):
     #attach last node to root
     finalNode = max(graph.node.keys())
     if finalNode in graph.singletons():
-      graph.add_edge(0, finalNode, edge_label = "_null_")
+      graph.add_edge(0, finalNode, label = "_null_")
 
     #attach all singletons to next node
     singletons = graph.singletons()
@@ -51,11 +51,11 @@ class BaselineGraphToTreeAlgorithm(AbstractGraphToTreeAlgorithm):
     for singleton in singletons: 
       nextNode = singleton + 1
       if nextNode in graph.node.keys():
-        graph.add_edge(nextNode, singleton, edge_label = "_null_")
+        graph.add_edge(nextNode, singleton, label = "_null_")
 
     for node in graph.nodesWithoutIncomingEdges():
-      graph.add_edge(0, node, edge_label = "_root_")
-      
+      graph.add_edge(0, node, label = "_root_")
+
     return graph
 
 
