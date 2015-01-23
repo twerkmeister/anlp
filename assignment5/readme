@@ -1,0 +1,10 @@
+[Algorithm]
+
+I implemented the baseline algorithm for the SDP 2014 shared task. This algorithm scored 1.0 for precision over all formats. For dm and pas format it achieved around 45% recall and for the pcedt format >90%. This is due to the fact that the latter uses less edges in it's SDPs and so fewer reentrancing edges are pruned by the agressive baseline. The full evaluation results can be found in the *.eval files.
+
+I considered a couple more ideas, but lacked the time implementing them. 
+To encode information in edges reentrancing edges could be flipped and their tag could be expanded by adding "_flipped_" to it. Afterwards one has to make sure that this flipping process does not generate standalone cycles. 
+Another interesting option might be learning the structure of an SDP. One could count what words with which POS point to words with which POS on which side. For example, this might result in learning that determiners always points to some form of noun on their right side. I think this could be a valuable addition for transforming a dependency tree into an SDP. The biggest problem might be the sparsity of the data.
+
+[Implementation Notice]
+I used networkx as a graph library and extended the existing directed graph. In combination with matplotlib networkx comes with nice drawing capabilities. For the dm format I included pictures for the first graph, this graph being transformed to a dependency tree and it being transformed back.
