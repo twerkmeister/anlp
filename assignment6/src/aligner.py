@@ -16,8 +16,10 @@ optparser.add_option("-r","--num_rounds", dest="num_rounds", default=100, type="
 f_data = "%s.%s" % (opts.train, opts.french)
 e_data = "%s.%s" % (opts.train, opts.english)
 
+NULL="__NULL__"
+
 sys.stderr.write("Training IBM Model I...\n")
-bitext = [[sentence.strip().split() for sentence in pair] for pair in zip(open(f_data), open(e_data))[:opts.num_sents]]
+bitext = [[sentence.strip().split() for sentence in pair] for pair in zip(map(lambda s: NULL + " " + s, open(f_data)), open(e_data))[:opts.num_sents]]
 foreign_words = set()
 english_words = set()
 for (f,e) in bitext:
@@ -33,22 +35,25 @@ del(english_words)
 
 for i in range(0, opts.num_rounds):
   sys.stderr.write("EM training round %d\n" % i)
+  EM.initCounts()
   for (f_s,e_s) in bitext:
     total_s = 0 
     for e in e_s:
       for f in f_s:
-        total_s += EM.trans_prob[EM.foreign_index[f],EM.english_index[e]]
+        total_s += EM.t[f][e]
     for e in e_s:
       for f in f_s:
-        EM.counts[EM.foreign_index[f], EM.english_index[e]] += EM.trans_prob[EM.foreign_index[f],EM.english_index[e]] / total_s
-  EM.normalizeCounts()
-  EM.adjustParameters()
+        EM.counts[f][e] += EM.t[f][e] / total_s
+        EM.total[f] += EM.t[f][e] / total_s
+  for f in EM.total.keys():
+    for e in EM.counts[f].keys():
+      EM.t[f][e] = EM.counts[f][e] / EM.total[f] 
 
 
 for (f_s, e_s) in bitext:
   for e_i,e in enumerate(e_s):
-    (f_i,f) = max(enumerate(f_s), key=(lambda (f_i, f): EM.t(f,e)))
-    sys.stdout.write("%i-%i " % (f_i,e_i))
+    (f_i,f) = max(enumerate(f_s), key=(lambda (f_i, f): EM.t[f][e]))
+    sys.stdout.write("%i-%i " % (f_i-1,e_i))
   sys.stdout.write("\n")
 
 
