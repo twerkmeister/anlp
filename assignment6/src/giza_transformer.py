@@ -28,6 +28,6 @@ with open(sys.argv[1]) as f:
     for t_i, t in enumerate(t_s):
       for a_i, a in enumerate(a_s):
         if str(t_i+1) in a:
-          sys.stdout.write("%i-%i " % (a_i-1,t_i))
+          sys.stdout.write("%i-%i " % (a_i-1 if a_i>0 else a_i, t_i))
     sys.stdout.write("\n")
 
